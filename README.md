@@ -51,3 +51,8 @@ Fixed program prints: `100`
 My prediction: `1` then `5`.
 - `a`: `add()` makes items 1, then `a.items = -5` is refused by the setter (value < 0), so it prints 1.
 - `b`: BigBag's `add()` calls `super.add()` twice, so each `add()` adds 2. After two calls items = 4, then `b.items = 4 + 1` = 5, so it prints 5.
+Real output:
+1
+5
+
+Was I right? Yes. My prediction was correct.
