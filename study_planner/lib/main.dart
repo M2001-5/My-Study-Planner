@@ -1,10 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-
 void main() {
   runApp(const MyApp());
 }
 
-// STATIC: root widget of the app
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -15,18 +13,12 @@ class MyApp extends StatelessWidget {
       title: 'My Study Planner',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFF5F6FA),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.indigo,
-          foregroundColor: Colors.white,
-        ),
       ),
       home: const StudyPlannerScreen(),
     );
   }
 }
 
-// STATIC + LOGIC: main screen (StatefulWidget because the data changes)
 class StudyPlannerScreen extends StatefulWidget {
   const StudyPlannerScreen({super.key});
 
@@ -35,117 +27,165 @@ class StudyPlannerScreen extends StatefulWidget {
 }
 
 class _StudyPlannerScreenState extends State<StudyPlannerScreen> {
-  // LOGIC: the data (list of maps with subject, hours, done)
-  final List<Map<String, dynamic>> _goals = [
-    {'subject': 'Mobile App Development', 'hours': 5, 'done': false},
-    {'subject': 'Data Structures', 'hours': 3, 'done': false},
-    {'subject': 'Research Methodology', 'hours': 2, 'done': true},
+  List<Map<String, dynamic>> goals = [
+    {
+      'title': 'Mobile App Development',
+      'hours': 4,
+      'done': false,
+    },
+    {
+      'title': 'Data Structures',
+      'hours': 6,
+      'done': false,
+    },
+    {
+      'title': 'Research Methodology',
+      'hours': 5,
+      'done': true,
+    },
   ];
 
-  // LOGIC: counter used to name the sample goals
-  int _sampleCount = 0;
+  int sampleCount = 0;
 
-  // LOGIC: add a sample goal (setState rebuilds the screen)
-  void _addSampleGoal() {
+  int get totalHours {
+    return goals.fold(0, (sum, goal) {
+      return sum + (goal['hours'] as int);
+    });
+  }
+
+  int get completedGoals {
+    return goals.where((goal) => goal['done'] == true).length;
+  }
+
+  int get remainingGoals {
+    return goals.length - completedGoals;
+  }
+
+  void addGoal() {
     setState(() {
-      _sampleCount = _sampleCount + 1;
-      _goals.add({
-        'subject': 'Sample goal $_sampleCount',
+      sampleCount++;
+
+      goals.add({
+        'title': 'Sample Goal $sampleCount',
         'hours': 2,
         'done': false,
       });
     });
   }
 
-  // LOGIC: mark a goal as done / not done
-  void _toggleGoal(int index) {
+  void toggleGoal(int index) {
     setState(() {
-      _goals[index]['done'] = !(_goals[index]['done'] as bool);
+      goals[index]['done'] = !goals[index]['done'];
     });
   }
 
-  // LOGIC: delete a goal
-  void _deleteGoal(int index) {
+  void deleteGoal(int index) {
     setState(() {
-      _goals.removeAt(index);
+      goals.removeAt(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // STATIC: top bar with the app title
       appBar: AppBar(
         title: const Text('My Study Planner'),
+        centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // STATIC: heading above the list
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'My Study Goals',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: Padding(
+   padding: const EdgeInsets.all(16),
+  child: Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+  const Text(
+   'My Study Goals',
+  style: TextStyle(
+     fontSize: 24,
+     fontWeight: FontWeight.bold,
+ ),
             ),
-          ),
-          // STATIC: list built from the data (no hard-coded cards)
-          Expanded(
-            child: ListView.builder(
-              // CONNECTION 1: the UI reads its data from the LOGIC list
-              itemCount: _goals.length,
-              itemBuilder: (context, index) {
-                final Map<String, dynamic> goal = _goals[index];
-                final bool done = goal['done'] as bool;
-
-                return Card(
-                  color: Colors.white,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+    const SizedBox(height: 20),
+    Row(
+    children: [
+    Expanded(
+     child: StatCard(
+     title: 'Total Hours',
+     value: '$totalHours', icon: Icons.access_time, ), ), const SizedBox(width: 8),  Expanded(child: StatCard(
+                    title: 'Completed',
+  value: '$completedGoals',  icon: Icons.check_circle,  ),  ),
+                const SizedBox(width: 8), Expanded(child: StatCard(  title: 'Remaining', value: '$remainingGoals', icon: Icons.pending_actions,
                   ),
-                  child: ListTile(
-                    leading: Checkbox(
-                      activeColor: Colors.indigo,
-                      value: done,
-                      onChanged: (value) {
-                        _toggleGoal(index);
-                      },
-                    ),
-                    title: Text(
-                      goal['subject'] as String,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        decoration:
-                            done ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                    subtitle: Text('${goal['hours']} study hours'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      // CONNECTION 2: the UI calls LOGIC functions
-                      onPressed: () {
-                        _deleteGoal(index);
-                      },
-                    ),
-                    onTap: () {
-                      _toggleGoal(index);
-                    },
-                  ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
+ const SizedBox(height: 20),
+  const Text( 'My Goals',style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,
+ ),
+ ),
+ const SizedBox(height: 10),
+  Expanded( child: goals.isEmpty ? const Center(
+  child: Text('No study goals yet.'), )
+  : ListView.builder( itemCount: goals.length,
+  itemBuilder: (context, index) {
+     bool isDone = goals[index]['done']; return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+   child: ListTile(  leading: Checkbox(value: isDone,
+ onChanged: (value) {
+   toggleGoal(index);
+    },
+    ),
+title: Text(goals[index]['title'], style: TextStyle(  decoration: isDone
+ ? TextDecoration.lineThrough : TextDecoration.none,
+  ),
+  ),
+   subtitle: Text('${goals[index]['hours']} hours',
+ ),
+  trailing: IconButton( icon: const Icon(   Icons.delete,  color: Colors.red, ),
+  onPressed: () {
+  deleteGoal(index);
+    },
+    ),
+   ),
+     );
+     },
+     ),
+            ),
+          ],
+        ),
       ),
-      // STATIC: button that adds a sample goal for now
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          _addSampleGoal();
-        },
+        onPressed: addGoal,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const StatCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(  padding: const EdgeInsets.all(10),
+ child: Column( children: [Icon(icon, size: 25, color: Colors.indigo),const SizedBox(height: 8),
+    Text( value, style: const TextStyle(   fontSize: 20,
+ fontWeight: FontWeight.bold,
+    ),
+    ),
+   Text( title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12),
+   ),
+    ],
+    ),
       ),
     );
   }
